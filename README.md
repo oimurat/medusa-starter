@@ -54,6 +54,9 @@ npm install
 npm run dev
 ```
 
+### 4. Storefront画面へのアクセス
+http://localhost:8000
+
 ---
 
 ## 終了時
