@@ -34,7 +34,7 @@ http://localhost:9000/app
 
 #### 6.2 下記ユーザー情報でログイン出来ることを確認
 user: admin@example.com
-pass: supersecret
+<br>pass: supersecret
 
 ---
 
