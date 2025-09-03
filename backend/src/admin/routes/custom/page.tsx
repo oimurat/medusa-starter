@@ -1,32 +1,75 @@
-// カスタムルートの設定
-
-// カスタムルートの設定に必要
+// Admin のカスタムUIルートをサイドバーに表示するために必要
 import { defineRouteConfig } from "@medusajs/admin-sdk"
-// カスタムルートのサイドバーに表示するアイコンに必要
-import { ChatBubbleLeftRight } from "@medusajs/icons"
-// カスタムルートの表示に必要
-import { Container, Heading } from "@medusajs/ui"
 
-// カスタムルートの表示
+// サイドバー用のアイコンを表示するために必要
+import { Typescript } from "@medusajs/icons"
+
+// ページのUI構成に必要
+import { Button, Container, Heading, toast } from "@medusajs/ui"
+
+// 管理画面からバックエンドへリクエストするためのJS SDKを利用するために必要
+import { sdk } from "../../lib/sdk"
+
+type HelloWorldResponse = { message: string }
+
 const CustomPage = () => {
+  // GET ボタン押下時のハンドラ
+  // src/api/hello-world/route.ts に対応する /hello-world を呼ぶ
+
+  const handleGet = async () => {
+    try {
+      const data = (await sdk.client.fetch(`/hello-world`)) as HelloWorldResponse
+      toast.success(`GET: ${data.message}`)
+      console.log(data)
+    } catch (e: any) {
+      toast.error(`GET failed: ${e.message}`)
+    }
+  }
+
+  // POST ボタン押下時のハンドラ
+  // src/api/hello-world/route.tsのPOSTハンドラが実行され、JSON が返る
+  const handlePost = async () => {
+    try {
+      const data = (await sdk.client.fetch(`/hello-world`, {
+        method: "POST",
+        body: { any: "payload" },
+      })) as HelloWorldResponse
+      toast.success(`POST: ${data.message}`)
+      console.log(data)
+    } catch (e: any) {
+      toast.error(`POST failed: ${e.message}`)
+    }
+  }
+
+  // ページの表示
+  // Container/Heading は Medusa UI コンポーネント
+  // 2つのボタンから GET/POST を実行
   return (
     <Container className="divide-y p-0">
       <div className="flex items-center justify-between px-6 py-4">
         <Heading level="h2">This is my custom route</Heading>
+        <div className="flex gap-2">
+          <Button size="small" variant="secondary" onClick={handleGet}>
+            Call GET
+          </Button>
+          <Button size="small" variant="primary" onClick={handlePost}>
+            Call POST
+          </Button>
+        </div>
       </div>
     </Container>
   )
 }
 
-// カスタムルートの設定
+// サイドバーに項目を追加するためのルート設定
 export const config = defineRouteConfig({
-  label: "Custom Route", // カスタムルートのサイドバーに表示される内容
-  icon: ChatBubbleLeftRight, // カスタムルートのサイドバーに表示されるアイコン
+  label: "Hello World",
+  icon: Typescript,
 })
 
+// パンくずリストの設定
+export const handle = {
+  breadcrumb: () => "Hello World",
+}
 
 export default CustomPage
-
-export const handle = {
-  breadcrumb: () => "Custom Route", // パンくずリストに表示される内容
-}
