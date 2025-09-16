@@ -2,6 +2,48 @@
 
 ---
 
+## 拡張管理者ダッシュボード
+### 1. スクリプト実行権限付与(初回のみ必要)
+```bash
+chmod +x start.sh
+```
+
+### 2. 各種依存関係インストール
+```bash
+cd backend
+npm install
+
+cd admin-dashboard
+npm install
+```
+
+### 3. Backendと管理者ダッシュボードを起動
+```bash
+cd ../
+docker compose up --build -d
+```
+
+### 4. 管理者アカウントの追加
+```bash
+docker compose exec backend npx medusa user -e admin@example.com -p supersecret
+```
+
+### 5. 管理者ダッシュボードへのアクセス
+#### 5.1 下記リンクにブラウザからアクセス出来ることを確認
+http://localhost:9000/app/login
+
+#### 5.2 下記ユーザー情報でログイン出来ることを確認
+user: admin@example.com
+<br>pass: supersecret
+
+### 6. コンテナ終了
+```bash
+docker compose down
+(docker compose down -v)
+```
+
+---
+
 ## Backend
 ### 1. スクリプト実行権限付与(初回のみ必要)
 ```bash
@@ -27,14 +69,6 @@ npm run docker:up
 ```bash
 docker compose run --rm medusa npx medusa user -e admin@example.com -p supersecret
 ```
-
-### 6. 管理者ダッシュボードへのアクセス
-#### 6.1 下記リンクにブラウザからアクセス出来ることを確認
-http://localhost:9000/app
-
-#### 6.2 下記ユーザー情報でログイン出来ることを確認
-user: admin@example.com
-<br>pass: supersecret
 
 ---
 
