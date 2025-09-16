@@ -30,7 +30,7 @@ docker compose exec backend npx medusa user -e admin@example.com -p supersecret
 
 ### 5. 管理者ダッシュボードへのアクセス
 #### 5.1 下記リンクにブラウザからアクセス出来ることを確認
-http://localhost:9000/app/login
+http://localhost:5173/login
 
 #### 5.2 下記ユーザー情報でログイン出来ることを確認
 user: admin@example.com
