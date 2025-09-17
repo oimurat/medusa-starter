@@ -302,7 +302,24 @@ export const useProducts = (
   >
 ) => {
   const { data, ...rest } = useQuery({
-    queryFn: () => sdk.admin.product.list(query),
+    /**
+     * プロダクト一覧
+     * - tenant_subject / tenant_teacher が指定されている場合、カスタムAPI
+     *   `/admin/products-tenant` に切替えて DB の tenant_metadata に基づく
+     *   絞り込みを行う。
+     * - それ以外は通常の `sdk.admin.product.list` を利用。
+     */
+    queryFn: async () => {
+      const hasTenantFilters = Boolean((query as any)?.tenant_subject || (query as any)?.tenant_teacher)
+      if (hasTenantFilters) {
+        const params = new URLSearchParams()
+        Object.entries(query || {}).forEach(([k, v]) => {
+          if (v !== undefined && v !== null) params.set(k, String(v))
+        })
+        return (await sdk.client.fetch(`admin/products-tenant?${params.toString()}`)) as HttpTypes.AdminProductListResponse
+      }
+      return sdk.admin.product.list(query)
+    },
     queryKey: productsQueryKeys.list(query),
     ...options,
   })

@@ -28,6 +28,8 @@ export const useProductTableQuery = ({
       "type_id",
       "status",
       "id",
+      "tenant_subject",
+      "tenant_teacher",
     ],
     prefix
   )
@@ -45,6 +47,8 @@ export const useProductTableQuery = ({
     status,
     order,
     q,
+    tenant_subject,
+    tenant_teacher,
   } = queryObject
 
   const searchParams: HttpTypes.AdminProductListParams = {
@@ -62,6 +66,9 @@ export const useProductTableQuery = ({
     status: status?.split(",") as HttpTypes.AdminProductStatus[],
     q,
     fields: DEFAULT_FIELDS,
+    // 追加パラメータはそのまま渡す（カスタムAPI側で解釈）
+    ...(tenant_subject ? { tenant_subject } : {}),
+    ...(tenant_teacher ? { tenant_teacher } : {}),
   }
 
   return {

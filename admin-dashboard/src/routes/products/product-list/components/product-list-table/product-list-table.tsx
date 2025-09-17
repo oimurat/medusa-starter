@@ -29,7 +29,12 @@ export const ProductListTable = () => {
     ReturnType<ReturnType<typeof productsLoader>>
   >
 
+  // 一覧のクエリパラメータを組み立て（limit/offset/検索など）
   const { searchParams, raw } = useProductTableQuery({ pageSize: PAGE_SIZE })
+
+  // 商品一覧データを取得
+  // NOTE: is_giftcard: false を固定するとギフトカード商品を除外
+  // （今回の tenant フィルタはバックエンドで処理するため、ここは任意）
   const { products, count, isLoading, isError, error } = useProducts(
     {
       ...searchParams,
@@ -41,7 +46,9 @@ export const ProductListTable = () => {
     }
   )
 
-  const filters = useProductTableFilters()
+  // Add filter の候補から非表示にするキーを指定
+  // （例: タグ/タイプ/ステータス/日付は隠し、教科/先生・販売チャネルなどを表示）
+  const filters = useProductTableFilters(["product_tags", "product_types", "status", "created_at", "updated_at"])
   const columns = useColumns()
 
   const { table } = useDataTable({
@@ -96,6 +103,28 @@ export const ProductListTable = () => {
       <Outlet />
     </Container>
   )
+}
+
+const columnHelper = createColumnHelper<HttpTypes.AdminProduct>()
+
+const useColumns = () => {
+  const base = useProductTableColumns()
+
+  const columns = useMemo(
+    () => [
+      ...base,
+      // 行末のアクション列（編集/削除）
+      columnHelper.display({
+        id: "actions",
+        cell: ({ row }) => {
+          return <ProductActions product={row.original} />
+        },
+      }),
+    ],
+    [base]
+  )
+
+  return columns
 }
 
 const ProductActions = ({ product }: { product: HttpTypes.AdminProduct }) => {
@@ -157,25 +186,4 @@ const ProductActions = ({ product }: { product: HttpTypes.AdminProduct }) => {
       ]}
     />
   )
-}
-
-const columnHelper = createColumnHelper<HttpTypes.AdminProduct>()
-
-const useColumns = () => {
-  const base = useProductTableColumns()
-
-  const columns = useMemo(
-    () => [
-      ...base,
-      columnHelper.display({
-        id: "actions",
-        cell: ({ row }) => {
-          return <ProductActions product={row.original} />
-        },
-      }),
-    ],
-    [base]
-  )
-
-  return columns
 }

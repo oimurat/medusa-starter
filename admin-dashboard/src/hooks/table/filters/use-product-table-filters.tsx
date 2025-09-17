@@ -3,13 +3,21 @@ import { Filter } from "../../../components/table/data-table"
 import { useProductTags } from "../../api"
 import { useProductTypes } from "../../api/product-types"
 import { useSalesChannels } from "../../api/sales-channels"
+import { useTenantMetadataOptions } from "../../api/tenant-metadata"
 
+/**
+ * 非表示にできるフィルタキー一覧
+ * - 呼び出し側（商品一覧）から除外指定されたキーは Add filter に出さない
+ */
 const excludeableFields = [
   "sales_channel_id",
   "collections",
   "categories",
   "product_types",
   "product_tags",
+  "status",        // 追加
+  "created_at",    // 追加
+  "updated_at",    // 追加
 ] as const
 
 export const useProductTableFilters = (
@@ -17,6 +25,7 @@ export const useProductTableFilters = (
 ) => {
   const { t } = useTranslation()
 
+  // 商品タイプの候補（除外指定時は取得を抑止）
   const isProductTypeExcluded = exclude?.includes("product_types")
 
   const { product_types } = useProductTypes(
@@ -29,6 +38,7 @@ export const useProductTableFilters = (
     }
   )
 
+  // タグの候補
   const isProductTagExcluded = exclude?.includes("product_tags")
 
   const { product_tags } = useProductTags({
@@ -41,6 +51,7 @@ export const useProductTableFilters = (
   //   offset: 0,
   // })
 
+  // 販売チャネルの候補
   const isSalesChannelExcluded = exclude?.includes("sales_channel_id")
 
   const { sales_channels } = useSalesChannels(
@@ -53,6 +64,7 @@ export const useProductTableFilters = (
     }
   )
 
+  // カテゴリの候補
   const isCategoryExcluded = exclude?.includes("categories")
 
   // const { product_categories } = useAdminProductCategories({
@@ -64,6 +76,7 @@ export const useProductTableFilters = (
   //  enabled: !isCategoryExcluded,
   // })
 
+  // コレクションの候補
   const isCollectionExcluded = exclude?.includes("collections")
 
   // const { collections } = useAdminCollections(
@@ -78,6 +91,7 @@ export const useProductTableFilters = (
 
   let filters: Filter[] = []
 
+  // 商品タイプのフィルタ
   if (product_types && !isProductTypeExcluded) {
     const typeFilter: Filter = {
       key: "type_id",
@@ -93,6 +107,7 @@ export const useProductTableFilters = (
     filters = [...filters, typeFilter]
   }
 
+  // タグのフィルタ
   if (product_tags && !isProductTagExcluded) {
     const tagFilter: Filter = {
       key: "tag_id",
@@ -108,6 +123,7 @@ export const useProductTableFilters = (
     filters = [...filters, tagFilter]
   }
 
+  // 販売チャネルのフィルタ
   if (sales_channels) {
     const salesChannelFilter: Filter = {
       key: "sales_channel_id",
@@ -169,41 +185,110 @@ export const useProductTableFilters = (
   //   ],
   // }
 
-  const statusFilter: Filter = {
-    key: "status",
-    label: t("fields.status"),
-    type: "select",
-    multiple: true,
-    options: [
-      {
-        label: t("products.productStatus.draft"),
-        value: "draft",
-      },
-      {
-        label: t("products.productStatus.proposed"),
-        value: "proposed",
-      },
-      {
-        label: t("products.productStatus.published"),
-        value: "published",
-      },
-      {
-        label: t("products.productStatus.rejected"),
-        value: "rejected",
-      },
-    ],
+  // const statusFilter: Filter = {
+  //   key: "status",
+  //   label: t("fields.status"),
+  //   type: "select",
+  //   multiple: true,
+  //   options: [
+  //     {
+  //       label: t("products.productStatus.draft"),
+  //       value: "draft",
+  //     },
+  //     {
+  //       label: t("products.productStatus.proposed"),
+  //       value: "proposed",
+  //     },
+  //     {
+  //       label: t("products.productStatus.published"),
+  //       value: "published",
+  //     },
+  //     {
+  //       label: t("products.productStatus.rejected"),
+  //       value: "rejected",
+  //     },
+  //   ],
+  // }
+
+  // ステータス（除外指定がなければ表示）
+  if (!exclude?.includes("status")) {
+    const statusFilter: Filter = {
+      key: "status",
+      label: t("fields.status"),
+      type: "select",
+      multiple: true,
+      options: [
+        {
+          label: t("products.productStatus.draft"),
+          value: "draft",
+        },
+        {
+          label: t("products.productStatus.proposed"),
+          value: "proposed",
+        },
+        {
+          label: t("products.productStatus.published"),
+          value: "published",
+        },
+        {
+          label: t("products.productStatus.rejected"),
+          value: "rejected",
+        },
+      ],
+    }
+    filters = [...filters, statusFilter]
   }
 
-  const dateFilters: Filter[] = [
-    { label: t("fields.createdAt"), key: "created_at" },
-    { label: t("fields.updatedAt"), key: "updated_at" },
-  ].map((f) => ({
-    key: f.key,
-    label: f.label,
-    type: "date",
-  }))
+  // const dateFilters: Filter[] = [
+  //   { label: t("fields.createdAt"), key: "created_at" },
+  //   { label: t("fields.updatedAt"), key: "updated_at" },
+  // ].map((f) => ({
+  //   key: f.key,
+  //   label: f.label,
+  //   type: "date",
+  // }))
 
-  filters = [...filters, statusFilter, ...dateFilters]
+  // filters = [...filters, statusFilter, ...dateFilters]
 
+  // 作成日/更新日（除外指定がなければ表示）
+  if (!exclude?.includes("created_at")) {
+    filters = [...filters, { key: "created_at", label: t("fields.createdAt"), type: "date" }]
+  }
+  if (!exclude?.includes("updated_at")) {
+    filters = [...filters, { key: "updated_at", label: t("fields.updatedAt"), type: "date" }]
+  }
+
+  // テナントメタデータ（教科名/先生名）のフィルタ
+  const { data: tenantOptions } = useTenantMetadataOptions()
+
+  // 科目フィルタ
+  if (tenantOptions?.subjects?.length) {
+    filters = [
+      ...filters,
+      {
+        key: "tenant_subject",
+        label: t("科目"),
+        type: "select",
+        multiple: true,
+        searchable: true,
+        options: tenantOptions.subjects.map((s) => ({ label: s, value: s })),
+      },
+    ]
+  }
+
+  // 先生フィルタ
+  if (tenantOptions?.teachers?.length) {
+    filters = [
+      ...filters,
+      {
+        key: "tenant_teacher",
+        label: t("先生"),
+        type: "select",
+        multiple: true,
+        searchable: true,
+        options: tenantOptions.teachers.map((s) => ({ label: s, value: s })),
+      },
+    ]
+  }
   return filters
 }
