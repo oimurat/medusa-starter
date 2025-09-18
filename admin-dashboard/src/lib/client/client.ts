@@ -2,14 +2,17 @@ import Medusa from "@medusajs/js-sdk"
 
 export const backendUrl = __BACKEND_URL__ ?? "/"
 
+// SDKをJWTモードに変更
+// - loginで保存した token を毎回 Authorization: Bearer に付ける
 export const sdk = new Medusa({
   baseUrl: backendUrl,
   auth: {
-    type: "session",
+    type: "jwt",
+    token: async () => localStorage.getItem("admin_token") ?? "",
   },
 })
 
-// useful when you want to call the BE from the console and try things out quickly
+// コンソールから試すとき用
 if (typeof window !== "undefined") {
   ;(window as any).__sdk = sdk
 }

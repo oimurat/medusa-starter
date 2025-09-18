@@ -3,6 +3,7 @@ import { HttpTypes } from "@medusajs/types"
 import { UseMutationOptions, useMutation } from "@tanstack/react-query"
 import { sdk } from "../../lib/client"
 
+// ログイン成功時に JWT を localStorage へ保存（SDK が自動付与）
 export const useSignInWithEmailPass = (
   options?: UseMutationOptions<
     | string
@@ -15,20 +16,17 @@ export const useSignInWithEmailPass = (
 ) => {
   return useMutation({
     mutationFn: (payload) => sdk.auth.login("user", "emailpass", payload),
-    onSuccess: async (data, variables, context) => {
+    onSuccess: (data, variables, context) => {
+      const token = typeof data === "string" ? data : (data as any)?.token
+      if (token) localStorage.setItem("admin_token", token)
       options?.onSuccess?.(data, variables, context)
     },
     ...options,
   })
 }
 
-export const useSignUpWithEmailPass = (
-  options?: UseMutationOptions<
-    string,
-    FetchError,
-    HttpTypes.AdminSignInWithEmailPassword
-  >
-) => {
+// 以降は既存どおり
+export const useSignUpWithEmailPass = (options?: UseMutationOptions<string, FetchError, HttpTypes.AdminSignInWithEmailPassword>) => {
   return useMutation({
     mutationFn: (payload) => sdk.auth.register("user", "emailpass", payload),
     onSuccess: async (data, variables, context) => {
@@ -38,9 +36,7 @@ export const useSignUpWithEmailPass = (
   })
 }
 
-export const useResetPasswordForEmailPass = (
-  options?: UseMutationOptions<void, FetchError, { email: string }>
-) => {
+export const useResetPasswordForEmailPass = (options?: UseMutationOptions<void, FetchError, { email: string }>) => {
   return useMutation({
     mutationFn: (payload) =>
       sdk.auth.resetPassword("user", "emailpass", {
@@ -60,10 +56,7 @@ export const useLogout = (options?: UseMutationOptions<void, FetchError>) => {
   })
 }
 
-export const useUpdateProviderForEmailPass = (
-  token: string,
-  options?: UseMutationOptions<void, FetchError, HttpTypes.AdminUpdateProvider>
-) => {
+export const useUpdateProviderForEmailPass = (token: string, options?: UseMutationOptions<void, FetchError, HttpTypes.AdminUpdateProvider>) => {
   return useMutation({
     mutationFn: (payload) =>
       sdk.auth.updateProvider("user", "emailpass", payload, token),

@@ -18,6 +18,7 @@ import { useProductTableFilters } from "../../../../../hooks/table/filters/use-p
 import { useProductTableQuery } from "../../../../../hooks/table/query/use-product-table-query"
 import { useDataTable } from "../../../../../hooks/use-data-table"
 import { productsLoader } from "../../loader"
+import { useMePermissions } from "../../../../../hooks/api/me-permissions"
 
 const PAGE_SIZE = 20
 
@@ -45,6 +46,10 @@ export const ProductListTable = () => {
       placeholderData: keepPreviousData,
     }
   )
+
+  // 現在ユーザー権限を取得し、作成可否を判定
+  const { data: mePerms } = useMePermissions()
+  const canCreate = mePerms?.group === "admin"
 
   // Add filter の候補から非表示にするキーを指定
   // （例: タグ/タイプ/ステータス/日付は隠し、教科/先生・販売チャネルなどを表示）
@@ -75,9 +80,11 @@ export const ProductListTable = () => {
           <Button size="small" variant="secondary" asChild>
             <Link to="import">{t("actions.import")}</Link>
           </Button>
-          <Button size="small" variant="secondary" asChild>
-            <Link to="create">{t("actions.create")}</Link>
-          </Button>
+          {canCreate && (
+            <Button size="small" variant="secondary" asChild>
+              <Link to="create">{t("actions.create")}</Link>
+            </Button>
+          )}
         </div>
       </div>
       <_DataTable
