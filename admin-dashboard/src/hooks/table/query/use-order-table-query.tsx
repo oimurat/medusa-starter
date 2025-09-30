@@ -14,6 +14,7 @@ export const useOrderTableQuery = ({
     [
       "offset",
       "q",
+      "snd_q",　//snd_qを追加
       "created_at",
       "updated_at",
       "region_id",
@@ -34,6 +35,7 @@ export const useOrderTableQuery = ({
     payment_status,
     region_id,
     q,
+    snd_q,　//snd_qを追加
     order,
   } = queryObject
 
@@ -48,6 +50,7 @@ export const useOrderTableQuery = ({
     region_id: region_id?.split(","),
     order: order ? order : "-display_id",
     q,
+    snd_q, //snd_qを追加
   }
 
   return {

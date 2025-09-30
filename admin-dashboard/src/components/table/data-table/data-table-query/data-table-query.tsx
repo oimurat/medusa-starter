@@ -26,10 +26,21 @@ export const DataTableQuery = <TData,>({
         </div>
         <div className="flex shrink-0 items-center gap-x-2">
           {search && (
+            // DataTableSearchを複製し、<>で囲った
+            // Prefixを変えることで別の検索バーとして機能する
+            // {prefix}_qがＵＲＬ末尾にクエリとして追加される（今回はsnd_q）
+            <>
             <DataTableSearch
               prefix={prefix}
               autofocus={search === "autofocus"}
+              placeholder="email"
             />
+            <DataTableSearch
+              prefix="snd"
+              autofocus={search === "autofocus"}
+              placeholder="name"
+            />
+            </>
           )}
           {orderBy && <DataTableOrderBy keys={orderBy} prefix={prefix} />}
         </div>

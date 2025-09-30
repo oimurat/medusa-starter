@@ -1,5 +1,6 @@
 import { defineMiddlewares, authenticate } from "@medusajs/framework/http"
 import { requireAdmin } from "./middlewares/roles"
+import { adminOrderRoutesMiddlewares } from "./admin/orders-list/middlewares"
 
 export default defineMiddlewares({
   routes: [
@@ -16,5 +17,6 @@ export default defineMiddlewares({
       method: ["POST", "PUT", "DELETE"],
       middlewares: [authenticate("user", ["session", "bearer"]), requireAdmin],
     },
+    ...adminOrderRoutesMiddlewares, //Gitから持ってきたミドルウェアを追加している
   ],
 })

@@ -109,8 +109,33 @@ export const useOrderPreview = (
   return { ...data, ...rest }
 }
 
+// カスタム用にFieldを追加 
+export interface AdminCustomOrderFilters extends HttpTypes.AdminOrderFilters {
+  fields?: string;
+}
+// export const useOrders = (
+//   query?: HttpTypes.AdminOrderFilters,
+//   options?: Omit<
+//     UseQueryOptions<
+//       HttpTypes.AdminOrderListResponse,
+//       FetchError,
+//       HttpTypes.AdminOrderListResponse,
+//       QueryKey
+//     >,
+//     "queryFn" | "queryKey"
+//   >
+// ) => {
+//   const { data, ...rest } = useQuery({
+//     queryFn: async () => sdk.admin.order.list(query),
+//     queryKey: ordersQueryKeys.list(query),
+//     ...options,
+//   })
+
+//   return { ...data, ...rest }
+// }
+
 export const useOrders = (
-  query?: HttpTypes.AdminOrderFilters,
+  query?: AdminCustomOrderFilters,
   options?: Omit<
     UseQueryOptions<
       HttpTypes.AdminOrderListResponse,
@@ -122,13 +147,42 @@ export const useOrders = (
   >
 ) => {
   const { data, ...rest } = useQuery({
-    queryFn: async () => sdk.admin.order.list(query),
+    queryFn: async () => {
+      // queryにfieldsがある場合（全場合でそうなるはず）
+      const useCustomApi = !!query?.fields;
+
+      if (useCustomApi) {
+        //order一覧を取得
+        // --- カスタムAPIを呼び出すロジック ---
+        // 呼び出すAPIをadmin/orders-list(作成したカスタムAPI)に変更
+        const params = new URLSearchParams();
+        if (query) {
+          Object.entries(query).forEach(([key, value]) => {
+            if (value !== undefined && value !== null) {
+              params.append(key, String(value));
+            }
+          });
+        }
+        
+        // sdk.client.fetch を使用
+        const response = await sdk.client.fetch(
+          `admin/orders-list?${params.toString()}`
+        );
+        
+        return response as HttpTypes.AdminOrderListResponse;
+      }
+
+      // --- 標準APIを呼び出すロジック ---
+      const { fields, ...standardQuery } = query || {};
+      return sdk.admin.order.list(standardQuery);
+    },
+    
     queryKey: ordersQueryKeys.list(query),
     ...options,
-  })
-
-  return { ...data, ...rest }
-}
+  });
+  
+  return { ...data, ...rest };
+};
 
 export const useOrderShippingOptions = (
   id: string,
